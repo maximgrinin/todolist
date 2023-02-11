@@ -44,7 +44,7 @@ jobs:
           target: dev_image
           file: ./dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/diploma_todolist:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/diploma_todolist:latest
 
 #on: [push]
 #jobs:
