@@ -135,3 +135,7 @@ dmypy.json
 media/*
 ./django_media
 /.node_modules/
+./static
+./media
+static/
+media/

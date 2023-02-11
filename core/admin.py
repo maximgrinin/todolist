@@ -14,7 +14,8 @@ class CustomUserAdmin(UserAdmin):
     # ordering = ('username',)
     filter_horizontal = ()
     fieldsets = (
-        (None, {'fields': ('username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active', 'date_joined', 'last_login')}),
+        (None, {'fields': ('username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active', 'date_joined',
+                           'last_login')}),
     )
 
 
