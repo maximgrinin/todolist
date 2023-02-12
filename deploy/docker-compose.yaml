@@ -43,8 +43,8 @@ services:
     depends_on:
       api:
         condition: service_started
-      collect_static:
-        condition: service_completed_successfully
+#      collect_static:
+#        condition: service_completed_successfully
     ports:
       - "80:80"
     volumes:
