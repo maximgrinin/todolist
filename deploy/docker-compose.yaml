@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:14.6-alpine
+    image: postgres:14.6
     container_name: todolist_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -18,13 +18,11 @@ services:
       timeout: 3s
       retries: 15
     restart: always
-    ports:
-    - "5432:5432"
+#    ports:
+#    - "5432:5432"
 
   api:
-    build:
-      target: dev_image
-      context: .
+    image: maximgrinin/diploma_todolist:latest
     env_file: .env
     restart: always
     environment:
@@ -32,11 +30,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - 8000:8000
-    volumes:
-      - ./core:/opt/core
-      - ./todolist:/opt/todolist
+#    ports:
+#      - 8000:8000
+#    volumes:
+#      - ./core:/opt/core
+#      - ./todolist:/opt/todolist
 
   frontend:
     image: sermalenk/skypro-front:lesson-34
@@ -46,9 +44,9 @@ services:
         condition: service_started
     ports:
       - "80:80"
-    volumes:
-      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./static:/usr/share/nginx/html/static/
+#    volumes:
+#      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
+#      - ./static:/usr/share/nginx/html/static/
 
 volumes:
   postgres_data:
