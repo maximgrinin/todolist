@@ -3,6 +3,7 @@ on:
   push:
     branches-ignonre:
       - 'main'
+      - 'master'
 jobs:
   linting_and_test:
     runs-on: ubuntu-latest
