@@ -1,11 +1,13 @@
 name: build and deploy workflow
 on:
   push:
-    branch:
+    branches-ignonre:
       - 'main'
 jobs:
   linting_and_test:
     runs-on: ubuntu-latest
+    env:
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     steps:
       - name: clone code
         uses: actions/checkout@v3
@@ -44,43 +46,4 @@ jobs:
           target: prod_image
           file: ./dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/diploma_todolist:latest
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build_and_push
-    steps:
-      - name: clone code
-        uses: actions/checkout@v3
-      - name: .env decrypt
-        uses: anthonykgross/ansible-vault-cli-github-action@v1
-        with:
-          vault_key: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
-          command: "ansible-vault decrypt deploy/.env"
-      - name: copy file to server via ssh
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          source: "deploy/*"
-          target: "diploma_todolist"
-          strip_components: 1
-      - name: deploy app
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            cd diploma_todolist
-            docker-compose pull
-            docker-compose up -d
-      - name: cleanup
-        if: always()
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            docker system prune -a -f
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/diploma_todolist:${{ env.BRANCH_NAME }}
