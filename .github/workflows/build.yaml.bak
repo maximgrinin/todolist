@@ -2,8 +2,8 @@ name: build and deploy workflow
 on:
   push:
     branches-ignonre:
-      - 'main'
-      - 'master'
+      - main
+      - master
 jobs:
   linting_and_test:
     runs-on: ubuntu-latest

@@ -1,9 +1,9 @@
 name: build and deploy workflow
 on:
   push:
-    branch:
-      - 'main'
-      - 'master'
+    branches:
+      - main
+      - master
 jobs:
   linting_and_test:
     runs-on: ubuntu-latest
