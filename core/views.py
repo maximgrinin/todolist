@@ -27,7 +27,6 @@ class LoginView(generics.CreateAPIView):
 
 
 class ProfileView(generics.RetrieveUpdateDestroyAPIView):
-    # queryset: QuerySet[User] = User.objects.filter(is_active=True)
     serializer_class: Serializer = ProfileSerializer
     permission_classes: tuple[BasePermission, ...] = (IsAuthenticated,)
 

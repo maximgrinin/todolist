@@ -4,3 +4,4 @@ psycopg2-binary
 gunicorn~=20.1.0
 djangorestframework~=3.14.0
 django-extensions~=3.2.1
+social_auth_app_django~=5.0.0
