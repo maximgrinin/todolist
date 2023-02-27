@@ -36,6 +36,7 @@ services:
       - 8000:8000
     volumes:
       - ./core:/opt/core
+      - ./goals:/opt/goals
       - ./todolist:/opt/todolist
 
   collect_static:
@@ -49,7 +50,7 @@ services:
     command: python3 manage.py collectstatic -c --no-input
 
   frontend:
-    image: sermalenk/skypro-front:lesson-35
+    image: sermalenk/skypro-front:lesson-36
     restart: always
     depends_on:
       api:

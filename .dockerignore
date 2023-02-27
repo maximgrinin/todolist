@@ -4,6 +4,7 @@
 # expect
 !todolist/**
 !core/**
+!goals/**
 !entrypoint.sh
 !manage.py
 !requirements.txt

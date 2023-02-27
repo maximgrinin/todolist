@@ -14,10 +14,10 @@ services:
       POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
     healthcheck:
       test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
-      interval: 3s
+      interval: 5s
       timeout: 3s
-      retries: 15
-    restart: always
+      retries: 30
+    restart: on-failure
 
   api:
     image: maximgrinin/diploma_todolist:latest
@@ -38,7 +38,7 @@ services:
     command: python3 manage.py collectstatic -c --no-input
 
   frontend:
-    image: sermalenk/skypro-front:lesson-35
+    image: sermalenk/skypro-front:lesson-36
     restart: always
     depends_on:
       api:

@@ -1,8 +1,7 @@
 from typing import Any
 
 from django.contrib.auth import login, logout
-from django.db.models import QuerySet
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -23,7 +22,7 @@ class LoginView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         login(request=request, user=serializer.save())
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ProfileView(generics.RetrieveUpdateDestroyAPIView):
