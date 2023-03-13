@@ -17,4 +17,4 @@ class BoardPermissions(permissions.IsAuthenticated):
         if request.method not in permissions.SAFE_METHODS:
             _filters['role'] = BoardParticipant.Role.owner
 
-        return BoardParticipant.objects.filter(_filters).exists()
+        return BoardParticipant.objects.filter(**_filters).exists()
