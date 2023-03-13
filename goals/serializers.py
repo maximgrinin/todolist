@@ -61,7 +61,7 @@ class GoalCommentCreateSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     def validate_goal(self, value: Goal) -> Goal:
-        if value.status == Goal.status.archived:
+        if value.status == Goal.Status.archived:
             raise ValidationError('Goal not found')
         if not BoardParticipant.objects.filter(
             board_id=value.category.board.id,
