@@ -4,7 +4,7 @@ from rest_framework import filters, generics, permissions
 
 from goals.filters import GoalDateFilter
 from goals.models import GoalCategory, Goal, GoalComment, BoardParticipant, Board
-from goals.permissions import BoardPermissions  # , IsOwnerOrReadOnly
+from goals.permissions import BoardPermissions, GoalCategoryPermissions  # , IsOwnerOrReadOnly
 from goals.serializers import (
     GoalCategoryCreateSerializer,
     GoalCategorySerializer,
@@ -63,7 +63,7 @@ class GoalCategoryCreateView(generics.CreateAPIView):
 
 
 class GoalCategoryListView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [GoalCategoryPermissions]
     serializer_class = GoalCategorySerializer
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['title', 'created']
@@ -72,19 +72,26 @@ class GoalCategoryListView(generics.ListAPIView):
 
     def get_queryset(self):
         # return GoalCategory.objects.select_related('user').filter(
+        # return GoalCategory.objects.filter(
+        #     user_id=self.request.user.id,
+        #     is_deleted=False
+        # )
         return GoalCategory.objects.filter(
-            user_id=self.request.user.id,
+            board__participants__user_id=self.request.user.id,
             is_deleted=False
         )
 
 
 class GoalCategoryView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = GoalCategorySerializer
-    # permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [GoalCategoryPermissions]
 
     def get_queryset(self):
-        return GoalCategory.objects.filter(user=self.request.user, is_deleted=False)
+        # return GoalCategory.objects.filter(user=self.request.user, is_deleted=False)
+        return GoalCategory.objects.filter(
+            board__participants__user_id=self.request.user.id,
+            is_deleted=False
+        )
 
     def perform_destroy(self, instance: GoalCategory):
         with transaction.atomic():
