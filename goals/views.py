@@ -132,7 +132,7 @@ class GoalView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self) -> QuerySet[Goal]:
         return Goal.objects.filter(
-            user_id=self.request.user.id,
+            category__board__participants__user_id=self.request.user.id,
             category__is_deleted=False,
         ).exclude(
             status=Goal.Status.archived

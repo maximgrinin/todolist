@@ -35,4 +35,8 @@ class GoalPermissions(permissions.IsAuthenticated):
 
 class GoalCommentPermissions(permissions.IsAuthenticated):
     def has_object_permission(self, request, view, obj: GoalComment):
-        return request.method in permissions.SAFE_METHODS or obj.user_id == request.user.id
+        return any((
+            request.method in permissions.SAFE_METHODS,
+            # obj.goal.category.board.participants.filter(user_id=request.user.id).exists()
+            obj.user_id == request.user.id
+        ))
