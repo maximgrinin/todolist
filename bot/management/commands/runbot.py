@@ -5,6 +5,7 @@ from django.core.management import BaseCommand
 from bot.models import TgUser
 from bot.tg.client import TgClient
 from bot.tg.schemas import Message
+from goals.models import Goal, GoalCategory
 
 logger = logging.getLogger(__name__)
 
@@ -26,20 +27,90 @@ class Command(BaseCommand):
                 # print(item.message)
                 # logger.info(item.message)
 
-    def handle_message(self, msg: Message):
-        # self.tg_client.send_message(chat_id=msg.chat.id, text=msg.text)
+    def handle_message(self, msg: Message) -> None:
         tg_user, created = TgUser.objects.get_or_create(chat_id=msg.chat.id)
 
+        if created:
+            self.tg_client.send_message(msg.chat.id, '[greeting]')
         if tg_user.user:
             self.handle_authorized(tg_user, msg)
         else:
             self.handle_unauthorized(tg_user, msg)
 
     def handle_unauthorized(self, tg_user: TgUser, msg: Message):
-        self.tg_client.send_message(msg.chat.id, 'Hello!')
-
         code = tg_user.set_verification_code()
-        self.tg_client.send_message(tg_user.chat_id, f'Your verification code is: {code}')
+        self.tg_client.send_message(tg_user.chat_id, f'[verification code] {code}')
 
-    def handle_authorized(self, tg_user: TgUser, msg: Message):
-        logger.info('Authorized')
+    def handle_authorized(self, tg_user: TgUser, msg: Message) -> None:
+        if msg.text == '/goals':
+            self.fetch_tasks(tg_user, msg)
+        elif msg.text == '/create':
+            self.choice_category(tg_user, msg)
+        elif msg.text.startswith('/'):
+            self.tg_client.send_message(msg.chat.id, '[unknown command]')
+
+    def fetch_tasks(self, tg_user: TgUser, msg: Message) -> None:
+        goals = Goal.objects.filter(
+            category__board__participants__user_id=tg_user.user.id,
+            category__is_deleted=False,
+        ).exclude(
+            status=Goal.Status.archived
+        )
+        if goals:
+            response_list = [f'#{goal.id} {goal.title}' for goal in goals]
+            self.tg_client.send_message(msg.chat.id, '\n'.join(response_list))
+        else:
+            self.tg_client.send_message(msg.chat.id, '[goals list is empty]')
+
+    def choice_category(self, tg_user: TgUser, msg: Message) -> None:
+        categories = GoalCategory.objects.filter(
+            board__participants__user_id=tg_user.user.id,
+            is_deleted=False
+        )
+
+        if not categories:
+            self.tg_client.send_message(msg.chat.id, '[you have no categories]')
+            return None
+
+        dict_categories = {cat.title: cat for cat in categories}
+        response_list = [f'#{cat.id} {cat.title}' for cat in categories]
+        self.tg_client.send_message(
+            msg.chat.id,
+            '[select category or send /cancel to cancel]\n' + '\n'.join(response_list)
+        )
+
+        flag = True
+        while flag:
+            response = self.tg_client.get_updates(offset=self.offset)
+            for item in response.result:
+                self.offset = item.update_id + 1
+
+                if item.message.text in dict_categories:
+                    category = dict_categories.get(item.message.text)
+                    self.create_goal(tg_user, category)
+                    flag = False
+                elif item.message.text == '/cancel':
+                    self.tg_client.send_message(msg.chat.id, '[operation was canceled]')
+                    flag = False
+                else:
+                    self.tg_client.send_message(msg.chat.id, '[category is not exist]')
+
+    def create_goal(self, tg_user: TgUser, msg: Message, category: GoalCategory) -> None:
+        self.tg_client.send_message(msg.chat.id, text=f'[input title of new goal]')
+
+        flag = True
+        while flag:
+            response = self.tg_client.get_updates(offset=self.offset)
+            for item in response.result:
+                self.offset = item.update_id + 1
+
+                if item.message.text == '/cancel':
+                    self.tg_client.send_message(msg.chat.id, '[operation was canceled]')
+                    flag = False
+                else:
+                    goal = Goal.objects.create(category=category, user=tg_user.user, title=item.message.text)
+                    self.tg_client.send_message(
+                        msg.chat.id,
+                        f'[category was created successfully ({goal.title} in {goal.category})]'
+                    )
+                    flag = False

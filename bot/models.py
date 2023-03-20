@@ -21,3 +21,7 @@ class TgUser(models.Model):
 
     def __str__(self):
         return f'{self.user} at {self.chat_id}'
+
+    class Meta:
+        verbose_name = 'Telegram-пользователь'
+        verbose_name_plural = 'Telegram-пользователи'
