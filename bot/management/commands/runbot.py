@@ -52,6 +52,9 @@ class Command(BaseCommand):
             self.choice_category(tg_user, msg)
         elif msg.text.startswith('/'):
             self.tg_client.send_message(msg.chat.id, '[unknown command]')
+            self.tg_client.send_message(msg.chat.id, '[input /goal or /create command]')
+        else:
+            self.tg_client.send_message(msg.chat.id, '[input /goal or /create command]')
 
     def fetch_goals(self, tg_user: TgUser, msg: Message) -> None:
         goals = Goal.objects.filter(
@@ -62,7 +65,7 @@ class Command(BaseCommand):
         )
         if goals:
             response_list = [f'{goal.title} (category: {goal.category}, ' \
-                             f'priority: {goal.Priority.choices[goal.priority - 1][1]}' \
+                             f'priority: {goal.Priority.choices[goal.priority - 1][1]}, ' \
                              f'deadline: {goal.due_date.strftime("%Y-%m-%d") if goal.due_date else "not set"}'
                              for goal in goals]
             self.tg_client.send_message(msg.chat.id, '\n'.join(response_list))
@@ -80,7 +83,7 @@ class Command(BaseCommand):
             return None
 
         dict_categories = {cat.title: cat for cat in categories}
-        response_list = [f'#{cat.id} {cat.title}' for cat in categories]
+        response_list = [f'{cat.title}' for cat in categories]
         self.tg_client.send_message(
             msg.chat.id,
             '[select category or send /cancel to cancel]\n' + '\n'.join(response_list)
