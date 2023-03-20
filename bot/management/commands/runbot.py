@@ -13,16 +13,17 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.offset = 0
         self.tg_client = TgClient()
 
     def handle(self, *args, **options):
-        offset = 0
+        # self.offset = 0
         # print('Bot starts handling')
         logger.info('Bot starts handling')
         while True:
             res = self.tg_client.get_updates(offset=offset)
             for item in res.result:
-                offset = item.update_id + 1
+                self.offset = item.update_id + 1
                 self.handle_message(item.message)
                 # print(item.message)
                 # logger.info(item.message)
