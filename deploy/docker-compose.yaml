@@ -41,6 +41,8 @@ services:
     image: maximgrinin/diploma_todolist:latest
     restart: always
     env_file: .env
+    environment:
+      POSTGRES_HOST: db
     depends_on:
       api:
         condition: service_started
