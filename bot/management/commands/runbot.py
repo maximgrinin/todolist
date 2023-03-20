@@ -91,7 +91,7 @@ class Command(BaseCommand):
 
                 if item.message.text in dict_categories:
                     category = dict_categories.get(item.message.text)
-                    self.create_goal(tg_user, category)
+                    self.create_goal(tg_user, msg, category)
                     flag = False
                 elif item.message.text == '/cancel':
                     self.tg_client.send_message(msg.chat.id, '[operation was canceled]')
