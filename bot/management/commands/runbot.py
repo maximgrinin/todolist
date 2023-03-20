@@ -47,13 +47,13 @@ class Command(BaseCommand):
 
     def handle_authorized(self, tg_user: TgUser, msg: Message) -> None:
         if msg.text == '/goals':
-            self.fetch_tasks(tg_user, msg)
+            self.fetch_goals(tg_user, msg)
         elif msg.text == '/create':
             self.choice_category(tg_user, msg)
         elif msg.text.startswith('/'):
             self.tg_client.send_message(msg.chat.id, '[unknown command]')
 
-    def fetch_tasks(self, tg_user: TgUser, msg: Message) -> None:
+    def fetch_goals(self, tg_user: TgUser, msg: Message) -> None:
         goals = Goal.objects.filter(
             category__board__participants__user_id=tg_user.user.id,
             category__is_deleted=False,
@@ -61,7 +61,10 @@ class Command(BaseCommand):
             status=Goal.Status.archived
         )
         if goals:
-            response_list = [f'#{goal.id} {goal.title}' for goal in goals]
+            response_list = [f'{goal.title} (category: {goal.category}, ' \
+                             f'priority: {goal.Priority.choices[goal.priority - 1][1]}' \
+                             f'deadline: {goal.due_date.strftime("%Y-%m-%d") if goal.due_date else "not set"}'
+                             for goal in goals]
             self.tg_client.send_message(msg.chat.id, '\n'.join(response_list))
         else:
             self.tg_client.send_message(msg.chat.id, '[goals list is empty]')
@@ -115,6 +118,6 @@ class Command(BaseCommand):
                     goal = Goal.objects.create(category=category, user=tg_user.user, title=item.message.text)
                     self.tg_client.send_message(
                         msg.chat.id,
-                        f'[category was created successfully ({goal.title} in {goal.category})]'
+                        f'[goal was created successfully ({goal.title} in {goal.category})]'
                     )
                     flag = False
