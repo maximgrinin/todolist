@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError, AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 
 from core.fields import PasswordField
 from core.models import User
@@ -32,22 +32,23 @@ class LoginSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'email', 'username', 'password')
+        fields = ('id', 'username', 'password', 'first_name', 'last_name', 'email')
         read_only_fields = ('id', 'first_name', 'last_name', 'email')
 
     def create(self, validated_data: dict) -> User:
-        if user := authenticate(
+        if not (user := authenticate(
                 username=validated_data['username'],
-                password=validated_data['password']
-        ):
-            return user
-        raise AuthenticationFailed
+                password=validated_data['password'],
+        )):
+
+            raise AuthenticationFailed
+        return user
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'email', 'username')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email')
 
 
 class UpdatePasswordSerializer(serializers.Serializer):
@@ -56,10 +57,13 @@ class UpdatePasswordSerializer(serializers.Serializer):
 
     def validate_old_password(self, old_password: str) -> str:
         if not self.instance.check_password(old_password):
-            raise ValidationError('Password is not correct')
+            raise ValidationError('Password is incorrect')
         return old_password
 
     def update(self, instance: User, validated_data: dict) -> User:
         instance.set_password(validated_data['new_password'])
-        instance.save(update_fields=('password', ))
+        instance.save(update_fields=('password',))
         return instance
+
+    # def create(self, validated_data):
+    #     raise NotImplementedError

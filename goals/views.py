@@ -4,18 +4,16 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
 
 from goals.filters import GoalDateFilter
-from goals.models import GoalCategory, Goal, GoalComment, BoardParticipant, Board
-from goals.permissions import BoardPermissions, GoalCategoryPermissions, GoalPermissions, \
-    GoalCommentPermissions
-from goals.serializers import (
-    GoalCategoryCreateSerializer,
-    GoalCategorySerializer,
-    GoalCreateSerializer,
-    GoalSerializer,
-    GoalCommentCreateSerializer,
-    GoalCommentSerializer,
-    BoardCreateSerializer, BoardSerializer,
-)
+from goals.models import (Board, BoardParticipant, Goal, GoalCategory,
+                          GoalComment)
+from goals.permissions import (BoardPermissions, GoalCategoryPermissions,
+                               GoalCommentPermissions, GoalPermissions)
+from goals.serializers import (BoardCreateSerializer, BoardSerializer,
+                               GoalCategoryCreateSerializer,
+                               GoalCategorySerializer,
+                               GoalCommentCreateSerializer,
+                               GoalCommentSerializer, GoalCreateSerializer,
+                               GoalSerializer)
 
 
 class BoardCreateView(generics.CreateAPIView):
@@ -33,6 +31,7 @@ class BoardListView(generics.ListAPIView):
     ordering = ['title']
 
     def get_queryset(self):
+        # return Board.objects.prefetch_related('participants').filter(
         return Board.objects.filter(
             participants__user_id=self.request.user.id,
             is_deleted=False
@@ -60,6 +59,7 @@ class BoardView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class GoalCategoryCreateView(generics.CreateAPIView):
+    # permission_classes = [GoalCategoryPermissions]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = GoalCategoryCreateSerializer
 
@@ -73,11 +73,7 @@ class GoalCategoryListView(generics.ListAPIView):
     search_fields = ['title', 'description']
 
     def get_queryset(self):
-        # return GoalCategory.objects.select_related('user').filter(
-        # return GoalCategory.objects.filter(
-        #     user_id=self.request.user.id,
-        #     is_deleted=False
-        # )
+        # return GoalCategory.objects.prefetch_related('board__participants').filter(
         return GoalCategory.objects.filter(
             board__participants__user_id=self.request.user.id,
             is_deleted=False
@@ -89,7 +85,7 @@ class GoalCategoryView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [GoalCategoryPermissions]
 
     def get_queryset(self):
-        # return GoalCategory.objects.filter(user=self.request.user, is_deleted=False)
+        # return GoalCategory.objects.prefetch_related('board__participants').filter(
         return GoalCategory.objects.filter(
             board__participants__user_id=self.request.user.id,
             is_deleted=False
@@ -158,7 +154,9 @@ class GoalCommentListView(generics.ListAPIView):
 
     def get_queryset(self):
         # return GoalComment.objects.filter(user_id=self.request.user.id)
-        return GoalComment.objects.filter(goal__category__board__participants__user_id=self.request.user.id)
+        return GoalComment.objects.filter(
+            goal__category__board__participants__user_id=self.request.user.id,
+        )
 
 
 class GoalCommentView(generics.RetrieveUpdateDestroyAPIView):

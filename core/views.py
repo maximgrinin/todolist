@@ -1,14 +1,14 @@
 from typing import Any
 
 from django.contrib.auth import login, logout
-from rest_framework import generics, status
-from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework import generics, permissions, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
 from core.models import User
-from core.serializers import CreateUserSerializer, LoginSerializer, ProfileSerializer, UpdatePasswordSerializer
+from core.serializers import (CreateUserSerializer, LoginSerializer,
+                              ProfileSerializer, UpdatePasswordSerializer)
 
 
 class SignUpView(generics.CreateAPIView):
@@ -27,7 +27,7 @@ class LoginView(generics.CreateAPIView):
 
 class ProfileView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class: Serializer = ProfileSerializer
-    permission_classes: tuple[BasePermission, ...] = (IsAuthenticated,)
+    permission_classes: tuple[permissions.BasePermission, ...] = (permissions.IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
@@ -38,7 +38,7 @@ class ProfileView(generics.RetrieveUpdateDestroyAPIView):
 
 class UpdatePasswordView(generics.UpdateAPIView):
     serializer_class: Serializer = UpdatePasswordSerializer
-    permission_classes: tuple[BasePermission, ...] = (IsAuthenticated,)
+    permission_classes: tuple[permissions.BasePermission, ...] = (permissions.IsAuthenticated,)
 
     def get_object(self):
         return self.request.user

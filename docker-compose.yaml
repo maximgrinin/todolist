@@ -16,7 +16,7 @@ services:
       test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
       interval: 3s
       timeout: 3s
-      retries: 15
+      retries: 5
     restart: always
     ports:
     - "5432:5432"
@@ -25,8 +25,8 @@ services:
     build:
       target: dev_image
       context: .
-    env_file: .env
     restart: always
+    env_file: .env
     environment:
       POSTGRES_HOST: db
     depends_on:
@@ -37,6 +37,7 @@ services:
     volumes:
       - ./core:/opt/core
       - ./goals:/opt/goals
+      - ./bot:/opt/bot
       - ./todolist:/opt/todolist
 
   collect_static:
@@ -49,16 +50,29 @@ services:
       - django_static:/opt/static/
     command: python3 manage.py collectstatic -c --no-input
 
-  frontend:
-    image: sermalenk/skypro-front:lesson-37
+  bot:
+    build:
+      target: dev_image
+      context: .
     restart: always
+    env_file: .env
+    depends_on:
+      api:
+        condition: service_started
+      db:
+        condition: service_healthy
+    command: python3 manage.py runbot
+
+  frontend:
+    image: sermalenk/skypro-front:lesson-38
+    restart: always
+    ports:
+      - "80:80"
     depends_on:
       api:
         condition: service_started
       collect_static:
         condition: service_completed_successfully
-    ports:
-      - "80:80"
     volumes:
       - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
       - django_static:/usr/share/nginx/html/static/

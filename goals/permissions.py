@@ -1,6 +1,7 @@
 from rest_framework import permissions
 
-from goals.models import BoardParticipant, Board, GoalCategory, Goal, GoalComment
+from goals.models import (Board, BoardParticipant, Goal, GoalCategory,
+                          GoalComment)
 
 
 class BoardPermissions(permissions.IsAuthenticated):
@@ -37,6 +38,5 @@ class GoalCommentPermissions(permissions.IsAuthenticated):
     def has_object_permission(self, request, view, obj: GoalComment):
         return any((
             request.method in permissions.SAFE_METHODS,
-            # obj.goal.category.board.participants.filter(user_id=request.user.id).exists()
-            obj.user_id == request.user.id
+            obj.user.id == request.user.id
         ))

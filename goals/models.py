@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 
 from core.models import User
 
@@ -33,11 +32,6 @@ class Board(BaseModel):
 
 
 class BoardParticipant(BaseModel):
-    class Meta:
-        unique_together = ('board', 'user')
-        verbose_name = 'Участник'
-        verbose_name_plural = 'Участники'
-
     class Role(models.IntegerChoices):
         owner = 1, 'Владелец'
         writer = 2, 'Редактор'
@@ -60,6 +54,11 @@ class BoardParticipant(BaseModel):
         choices=Role.choices,
         default=Role.owner
     )
+
+    class Meta:
+        unique_together = ('board', 'user')
+        verbose_name = 'Участник'
+        verbose_name_plural = 'Участники'
 
 
 class GoalCategory(BaseModel):
