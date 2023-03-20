@@ -9,6 +9,10 @@ class Message(BaseModel):
     chat: Chat
     text: str | None = None
 
+# class Edited_message(BaseModel):
+#     chat: Chat
+#     text: str | None = None
+
 
 class UpdateObj(BaseModel):
     update_id: int
@@ -22,4 +26,4 @@ class SendMessageResponse(BaseModel):
 
 class GetUpdatesResponse(BaseModel):
     ok: bool
-    result: list[UpdateObj]
+    result: list[UpdateObj] = []

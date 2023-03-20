@@ -29,6 +29,9 @@ class Command(BaseCommand):
                 # logger.info(item.message)
 
     def handle_message(self, msg: Message) -> None:
+        # if not hasattr(msg, 'chat'):
+        #     return
+
         tg_user, created = TgUser.objects.get_or_create(chat_id=msg.chat.id)
 
         if created:
