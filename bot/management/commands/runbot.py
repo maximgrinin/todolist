@@ -52,9 +52,9 @@ class Command(BaseCommand):
             self.choice_category(tg_user, msg)
         elif msg.text.startswith('/'):
             self.tg_client.send_message(msg.chat.id, '[unknown command]')
-            self.tg_client.send_message(msg.chat.id, '[input /goal or /create command]')
+            self.tg_client.send_message(msg.chat.id, '[input /goals or /create command]')
         else:
-            self.tg_client.send_message(msg.chat.id, '[input /goal or /create command]')
+            self.tg_client.send_message(msg.chat.id, '[input /goals or /create command]')
 
     def fetch_goals(self, tg_user: TgUser, msg: Message) -> None:
         goals = Goal.objects.filter(
@@ -64,7 +64,7 @@ class Command(BaseCommand):
             status=Goal.Status.archived
         )
         if goals:
-            response_list = [f'{goal.title} (category: {goal.category}, ' \
+            response_list = [f'- {goal.title} (category: {goal.category}, ' \
                              f'priority: {goal.Priority.choices[goal.priority - 1][1]}, ' \
                              f'deadline: {goal.due_date.strftime("%Y-%m-%d") if goal.due_date else "not set"}'
                              for goal in goals]
