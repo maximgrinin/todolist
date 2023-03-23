@@ -5,6 +5,9 @@ from bot.models import TgUser
 
 
 class TgUserSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор привязки бота к профилю пользователя по аутентификационному коду.
+    """
     tg_id = serializers.SlugField(source='chat_id', read_only=True)
     # username = serializers.PrimaryKeyRelatedField(source='username', read_only=True)
 
@@ -15,12 +18,12 @@ class TgUserSerializer(serializers.ModelSerializer):
         # fields = ('tg_id', 'username', 'verification_code', 'user_id')
         # read_only_fields = ('tg_id', 'username', 'user_id')
 
-    def validate_verification_code(self, code: str) -> dict:
+    def validate_verification_code(self, code: str) -> str:
         try:
             self.tg_user = TgUser.objects.get(verification_code=code)
         except TgUser.DoesNotExist:
             raise ValidationError('Field is incorrect')
         return code
 
-    def update(self, instance: TgUser, validated_data: dict):
+    def update(self, instance: TgUser, validated_data: dict) -> TgUser:
         return self.tg_user

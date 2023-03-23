@@ -4,6 +4,10 @@ from core.models import User
 
 
 class BaseModel(models.Model):
+    """
+    Базовый абстрактный класс для наследования, который присваивает дату создания при создании модели и обновляет дату
+    обновления при каждом обновлении модели.
+    """
     created = models.DateTimeField(
         verbose_name='Дата создания',
         auto_now_add=True
@@ -17,6 +21,9 @@ class BaseModel(models.Model):
 
 
 class Board(BaseModel):
+    """
+    Модель данных для Досок.
+    """
     title = models.CharField(
         verbose_name='Название',
         max_length=255
@@ -32,6 +39,9 @@ class Board(BaseModel):
 
 
 class BoardParticipant(BaseModel):
+    """
+    Модель данных для организации свзяки Доски и Пользователя. Роли участников доски определены в классе Role.
+    """
     class Role(models.IntegerChoices):
         owner = 1, 'Владелец'
         writer = 2, 'Редактор'
@@ -52,7 +62,7 @@ class BoardParticipant(BaseModel):
     role = models.PositiveSmallIntegerField(
         verbose_name='Роль',
         choices=Role.choices,
-        default=Role.owner
+        default=Role.owner,
     )
 
     class Meta:
@@ -62,6 +72,9 @@ class BoardParticipant(BaseModel):
 
 
 class GoalCategory(BaseModel):
+    """
+    Модель данных для Категорий.
+    """
     board = models.ForeignKey(
         to=Board,
         verbose_name='Доска',
@@ -91,6 +104,9 @@ class GoalCategory(BaseModel):
 
 
 class Goal(BaseModel):
+    """
+    Модель данных для Целей.
+    """
     class Status(models.IntegerChoices):
         to_do = 1, 'К выполнению'
         in_progress = 2, 'В процессе'
@@ -149,6 +165,9 @@ class Goal(BaseModel):
 
 
 class GoalComment(BaseModel):
+    """
+    Модель данных для Комментариев.
+    """
     user = models.ForeignKey(
         to=User,
         on_delete=models.PROTECT,

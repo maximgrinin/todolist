@@ -9,10 +9,6 @@ class Message(BaseModel):
     chat: Chat
     text: str | None = None
 
-# class Edited_message(BaseModel):
-#     chat: Chat
-#     text: str | None = None
-
 
 class UpdateObj(BaseModel):
     update_id: int

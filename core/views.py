@@ -12,10 +12,16 @@ from core.serializers import (CreateUserSerializer, LoginSerializer,
 
 
 class SignUpView(generics.CreateAPIView):
+    """
+    Создание (регистрация) нового пользователя.
+    """
     serializer_class: Serializer = CreateUserSerializer
 
 
 class LoginView(generics.CreateAPIView):
+    """
+    Вход по логину и паролю для зарегистрированного пользователя.
+    """
     serializer_class: Serializer = LoginSerializer
 
     def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -26,19 +32,25 @@ class LoginView(generics.CreateAPIView):
 
 
 class ProfileView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Информация по профилю пользователя.
+    """
     serializer_class: Serializer = ProfileSerializer
     permission_classes: tuple[permissions.BasePermission, ...] = (permissions.IsAuthenticated,)
 
-    def get_object(self):
+    def get_object(self) -> User:
         return self.request.user
 
-    def perform_destroy(self, instance: User):
+    def perform_destroy(self, instance: User) -> None:
         logout(self.request)
 
 
 class UpdatePasswordView(generics.UpdateAPIView):
+    """
+    Обновление пароля пользователя.
+    """
     serializer_class: Serializer = UpdatePasswordSerializer
     permission_classes: tuple[permissions.BasePermission, ...] = (permissions.IsAuthenticated,)
 
-    def get_object(self):
+    def get_object(self) -> User:
         return self.request.user

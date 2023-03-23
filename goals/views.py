@@ -8,8 +8,8 @@ from goals.models import (Board, BoardParticipant, Goal, GoalCategory,
                           GoalComment)
 from goals.permissions import (BoardPermissions, GoalCategoryPermissions,
                                GoalCommentPermissions, GoalPermissions)
-from goals.serializers import (BoardCreateSerializer, BoardSerializer,
-                               GoalCategoryCreateSerializer,
+from goals.serializers import (BoardCreateSerializer, BoardListSerializer,
+                               BoardSerializer, GoalCategoryCreateSerializer,
                                GoalCategorySerializer,
                                GoalCommentCreateSerializer,
                                GoalCommentSerializer, GoalCreateSerializer,
@@ -17,6 +17,9 @@ from goals.serializers import (BoardCreateSerializer, BoardSerializer,
 
 
 class BoardCreateView(generics.CreateAPIView):
+    """
+    Позволяет пользователю со статусом IsAuthenticated создать доску и получить в ней роль "владелец".
+    """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = BoardCreateSerializer
 
@@ -25,8 +28,13 @@ class BoardCreateView(generics.CreateAPIView):
 
 
 class BoardListView(generics.ListAPIView):
+    """
+    Позволяет пользователю с разрешениями BoardPermissions видеть список своих досок и досок, в которых он является
+    участником.
+    """
+    model = Board
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = BoardCreateSerializer
+    serializer_class = BoardListSerializer
     filter_backends = [filters.OrderingFilter]
     ordering = ['title']
 
@@ -39,6 +47,12 @@ class BoardListView(generics.ListAPIView):
 
 
 class BoardView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Позволяет пользователю с разрешениями BoardPermissions видеть информацию по созданным пользователем доскам и доскам,
+    в которых пользователь является участником. Пользователь с ролью "владелец" может обновлять или удалять доску. При
+    удалении доски она получает признак is_deleted, присвоенные доске категории получают статус Архив, цели получают
+    статус Архив, но не удаляются из БД.
+    """
     model = Board
     permission_classes = [BoardPermissions]
     serializer_class = BoardSerializer
@@ -48,7 +62,7 @@ class BoardView(generics.RetrieveUpdateDestroyAPIView):
         # return Board.objects.filter(participants__user=self.request.user, is_deleted=False)
         return Board.objects.filter(is_deleted=False)
 
-    def perform_destroy(self, instance: Board) -> None:
+    def perform_destroy(self, instance: Board) -> Board:
         # При удалении доски помечаем ее как is_deleted,
         # «удаляем» категории, обновляем статус целей
         with transaction.atomic():
@@ -56,15 +70,23 @@ class BoardView(generics.RetrieveUpdateDestroyAPIView):
             instance.save(update_fields=('is_deleted',))
             instance.categories.update(is_deleted=True)
             Goal.objects.filter(category__board=instance).update(status=Goal.Status.archived)
+        return instance
 
 
 class GoalCategoryCreateView(generics.CreateAPIView):
+    """
+    Позволяет создать категорию пользователю с разрешениями GoalCategoryPermissions.
+    """
     # permission_classes = [GoalCategoryPermissions]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = GoalCategoryCreateSerializer
 
 
 class GoalCategoryListView(generics.ListAPIView):
+    """
+    Позволяет пользователю с разрешениями GoalCategoryPermissions видеть информацию по категориям, в досках, которых он
+    является участником и созданным им самим категории.
+    """
     permission_classes = [GoalCategoryPermissions]
     serializer_class = GoalCategorySerializer
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
@@ -81,6 +103,12 @@ class GoalCategoryListView(generics.ListAPIView):
 
 
 class GoalCategoryView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Позволяет пользователю с разрешениями GoalCategoryPermissions видеть информацию по категориям, в досках, которых он
+    является участником и созданным им самим категориям. Пользователь может обновлять или удалять категорию в
+    зависимости от ролей доступа и ролей участия в доске. При удалении категории все цели этой категории переходят в
+    статус Архив и не отображаются в списке целей, однако остаются в БД.
+    """
     serializer_class = GoalCategorySerializer
     permission_classes = [GoalCategoryPermissions]
 
@@ -91,20 +119,27 @@ class GoalCategoryView(generics.RetrieveUpdateDestroyAPIView):
             is_deleted=False
         )
 
-    def perform_destroy(self, instance: GoalCategory):
+    def perform_destroy(self, instance: GoalCategory) -> GoalCategory:
         with transaction.atomic():
             instance.is_deleted = True
             instance.save(update_fields=('is_deleted',))
             instance.goals.update(status=Goal.Status.archived)
-        # return instance
+        return instance
 
 
 class GoalCreateView(generics.CreateAPIView):
+    """
+    Позволяет пользователю с разрешениями GoalPermissions создать цель.
+    """
     serializer_class = GoalCreateSerializer
     permission_classes = [GoalPermissions]
 
 
 class GoalListView(generics.ListAPIView):
+    """
+    Позволяет пользователю с разрешениями GoalPermissions видеть список целей, в досках, которых он является участником,
+    а также созданные им самим цели.
+    """
     permission_classes = [GoalPermissions]
     serializer_class = GoalSerializer
     filterset_class = GoalDateFilter
@@ -123,6 +158,12 @@ class GoalListView(generics.ListAPIView):
 
 
 class GoalView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Позволяет пользователю с разрешениями GoalPermissions видеть информацию по созданным им самим целям, а также целям
+    в досках, в которых он является участником. Пользователь может обновлять или удалять цель в зависимости от ролей
+    доступа и ролей участия в доске. Цель не отображается, если присвоенная ей категория имеет статус Архив. При
+    удалении категории все цели этой категории переходят в статус Архив и не отображаются, однако остаются в БД.
+    """
     permission_classes = [GoalPermissions]
     serializer_class = GoalSerializer
 
@@ -134,17 +175,25 @@ class GoalView(generics.RetrieveUpdateDestroyAPIView):
             status=Goal.Status.archived
         )
 
-    def perform_destroy(self, instance: Goal):
+    def perform_destroy(self, instance: Goal) -> Goal:
         instance.status = Goal.Status.archived
         instance.save(update_fields=('status',))
+        return instance
 
 
 class GoalCommentCreateView(generics.CreateAPIView):
+    """
+    Позволяет пользователю с разрешениями GoalCommentPermissions создать комментарий к цели.
+    """
     serializer_class = GoalCommentCreateSerializer
     permission_classes = [GoalCommentPermissions]
 
 
 class GoalCommentListView(generics.ListAPIView):
+    """
+    Позволяет пользователю с разрешениями GoalCommentPermissions видеть список своих комментариев и комментарии к целям,
+    в досках, в которых он является участником.
+    """
     model = GoalComment
     permission_classes = [GoalCommentPermissions]
     serializer_class = GoalCommentSerializer
@@ -160,6 +209,12 @@ class GoalCommentListView(generics.ListAPIView):
 
 
 class GoalCommentView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Позволяет пользователю с разрешениями GoalCommentPermissions видеть информацию по созданным пользователем
+    комментариям к целям, в т.ч. в досках которых он является участником. Пользователь может обновлять и удалять
+    комментарий в зависимости от ролей доступа и ролей участия в доске. Комментарии удаляются полностью при удалении
+    Пользователя или Цели.
+    """
     model = GoalComment
     permission_classes = [GoalCommentPermissions]
     serializer_class = GoalCommentSerializer

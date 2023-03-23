@@ -8,6 +8,9 @@ from core.models import User
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор создания/регистрации нового пользователя, дополнительно - проверяет и шифрует пароль.
+    """
     password = PasswordField(required=True)
     password_repeat = PasswordField(required=True)
 
@@ -27,6 +30,9 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор аутентификации пользователей.
+    """
     username = serializers.CharField(required=True)
     password = PasswordField(required=True)
 
@@ -46,12 +52,18 @@ class LoginSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор данных профилей пользователей.
+    """
     class Meta:
         model = User
         fields = ('id', 'username', 'first_name', 'last_name', 'email')
 
 
 class UpdatePasswordSerializer(serializers.Serializer):
+    """
+    Сериализатор смены пароля. Проверяет старый пароль и, в случае успеха, сохраняет новый пароль.
+    """
     old_password = PasswordField(required=True)
     new_password = PasswordField(required=True)
 

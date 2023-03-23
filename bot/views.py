@@ -9,6 +9,9 @@ from bot.tg.client import TgClient
 
 
 class VerificationView(GenericAPIView):
+    """
+    Интерфейс для привязки бота к пользователю.
+    """
     model = TgUser
     permission_classes = [IsAuthenticated]
     serializer_class = TgUserSerializer
@@ -20,5 +23,5 @@ class VerificationView(GenericAPIView):
         s.tg_user.user = request.user
         s.tg_user.save()
 
-        TgClient().send_message(s.tg_user.chat_id, 'Verification has been completed')
+        TgClient().send_message(s.tg_user.chat_id, '[verification has been completed]')
         return Response(self.get_serializer(s.tg_user).data)
